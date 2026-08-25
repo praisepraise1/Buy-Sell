@@ -1,5 +1,5 @@
 /* ==========================================
-   FootStyle E-commerce JavaScript
+    Praise Joshua E-commerce JavaScript
    Cart Management Using LocalStorage
 ========================================== */
 
@@ -293,7 +293,8 @@ function displayCart(){
 
 
     updateTotal();
-
+    updateCheckoutButtonState();
+    renderCheckoutSummary();
 
 }
 
@@ -424,6 +425,301 @@ function updateTotal(){
 }
 
 
+// Checkout modal
+
+function updateCheckoutButtonState(){
+
+    const checkoutButton =
+    document.getElementById("checkout-btn");
+
+
+    if(!checkoutButton) return;
+
+
+    checkoutButton.disabled = cart.length === 0;
+    checkoutButton.classList.toggle("disabled", cart.length === 0);
+
+}
+
+
+function renderCheckoutSummary(){
+
+    const summary = document.getElementById("checkout-summary");
+
+
+    if(!summary) return;
+
+
+    const subtotal = cart.reduce(
+        (sum,item)=> sum + item.price * item.quantity,
+        0
+    );
+
+    const shipping = cart.length > 0 ? 2500 : 0;
+    const total = subtotal + shipping;
+
+
+    summary.innerHTML = `
+
+        <h3>Order Summary</h3>
+
+        <ul class="checkout-items">
+            ${cart.map(item => `
+                <li>
+                    <span>${item.name} × ${item.quantity}</span>
+                    <strong>₦${(item.price * item.quantity).toLocaleString()}</strong>
+                </li>
+            `).join("")}
+        </ul>
+
+        <div class="checkout-totals">
+            <div><span>Subtotal</span><strong>₦${subtotal.toLocaleString()}</strong></div>
+            <div><span>Shipping</span><strong>₦${shipping.toLocaleString()}</strong></div>
+            <div class="checkout-total"><span>Total</span><strong>₦${total.toLocaleString()}</strong></div>
+        </div>
+
+    `;
+
+}
+
+
+function showCheckoutMessage(message, type = "success"){
+
+    const status = document.getElementById("checkout-status");
+
+
+    if(!status) return;
+
+
+    status.innerHTML = `
+        <div class="checkout-message ${type}">
+            ${message}
+        </div>
+    `;
+
+}
+
+function generatePdfReceipt(customerName, email, address) {
+    if (!window.jspdf?.jsPDF) return;
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shipping = cart.length > 0 ? 2500 : 0;
+    const total = subtotal + shipping;
+    const orderId = `FS-${Date.now().toString().slice(-6)}`;
+
+    pdf.setFontSize(18);
+    pdf.text("Praise Joshua Receipt", 14, 22);
+    pdf.setFontSize(11);
+    pdf.text(`Order ID: ${orderId}`, 14, 34);
+    pdf.text(`Date: ${new Date().toLocaleString()}`, 14, 42);
+    pdf.text(`Customer: ${customerName}`, 14, 50);
+    pdf.text(`Email: ${email}`, 14, 58);
+    pdf.text(`Address: ${address}`, 14, 66);
+
+    pdf.setFontSize(13);
+    pdf.text("Items", 14, 82);
+    let y = 92;
+
+    cart.forEach(item => {
+        pdf.setFontSize(10);
+        pdf.text(`${item.name} × ${item.quantity}`, 14, y);
+        pdf.text(`₦${(item.price * item.quantity).toLocaleString()}`, 170, y, { align: "right" });
+        y += 8;
+    });
+
+    pdf.setFontSize(12);
+    pdf.text("Subtotal:", 14, y + 12);
+    pdf.text(`₦${subtotal.toLocaleString()}`, 170, y + 12, { align: "right" });
+    pdf.text("Shipping:", 14, y + 20);
+    pdf.text(`₦${shipping.toLocaleString()}`, 170, y + 20, { align: "right" });
+    pdf.setFontSize(14);
+    pdf.text("Total:", 14, y + 32);
+    pdf.text(`₦${total.toLocaleString()}`, 170, y + 32, { align: "right" });
+
+    pdf.save(`praise-joshua-receipt-${orderId}.pdf`);
+}
+
+function showSuccessAlert(customerName, email, address, reference = null) {
+    const referenceText = reference ? `<br><small>Ref: ${reference}</small>` : "";
+    Swal.fire({
+        icon: 'success',
+        title: 'Order Successful',
+        html: `Thanks, <strong>${customerName}</strong>. Your test order has been placed.${referenceText}`,
+        confirmButtonText: 'Download Receipt',
+        customClass: {
+            popup: 'swal2-rounded',
+        }
+    }).then(() => {
+        generatePdfReceipt(customerName, email, address);
+    });
+}
+
+function setupCheckoutModal(){
+
+    const checkoutButton = document.getElementById("checkout-btn");
+    const modal = document.getElementById("checkout-modal");
+    const closeButton = document.getElementById("checkout-close");
+    const overlay = modal?.querySelector(".modal-overlay");
+    const form = document.getElementById("checkout-form");
+
+
+    if(!checkoutButton || !modal || !form) return;
+
+
+    const openModal = ()=>{
+
+        if(cart.length === 0) return;
+
+        renderCheckoutSummary();
+        form.reset();
+
+        const status = document.getElementById("checkout-status");
+        if(status) status.innerHTML = "";
+
+        modal.classList.add("open");
+        document.body.style.overflow = "hidden";
+
+    };
+
+
+    const closeModal = ()=>{
+
+        modal.classList.remove("open");
+        document.body.style.overflow = "";
+
+        const status = document.getElementById("checkout-status");
+        if(status) status.innerHTML = "";
+
+    };
+
+
+    checkoutButton.addEventListener("click", openModal);
+    closeButton?.addEventListener("click", closeModal);
+    overlay?.addEventListener("click", closeModal);
+
+
+    form.addEventListener("submit", (event)=>{
+
+        event.preventDefault();
+
+
+        const customerName =
+        document.getElementById("customer-name").value.trim();
+
+        const email =
+        document.getElementById("customer-email").value.trim();
+
+        const address =
+        document.getElementById("shipping-address").value.trim();
+
+        const cardholderName =
+        document.getElementById("cardholder-name").value.trim();
+
+        const cardNumber =
+        document.getElementById("card-number").value.trim();
+
+        const cardExpiry =
+        document.getElementById("card-expiry").value.trim();
+
+        const cardCvv =
+        document.getElementById("card-cvv").value.trim();
+
+
+        if(!customerName || !email || !address || !cardholderName || !cardNumber || !cardExpiry || !cardCvv){
+
+            showCheckoutMessage("Please complete all checkout fields, including your demo card details.", "error");
+            return;
+
+        }
+
+
+        const status = document.getElementById("checkout-status");
+
+        if(status){
+
+            status.innerHTML = `
+                <div class="checkout-processing">
+                    <div class="checkout-spinner"></div>
+                    <p>Processing your test payment...</p>
+                </div>
+            `;
+
+        }
+
+
+        const paystackKey = "pk_test_your_paystack_public_key_here";
+
+
+        if(paystackKey.includes("your_paystack_public_key_here")){
+
+            setTimeout(()=>{
+
+                cart = [];
+                saveCart();
+                displayCart();
+                updateCheckoutButtonState();
+                closeModal();
+                showSuccessAlert(customerName, email, address);
+
+            }, 2000);
+
+            return;
+
+        }
+
+
+        if(window.PaystackPop){
+
+            const handler = window.PaystackPop.setup({
+
+                key: paystackKey,
+                email: email,
+                amount: cart.reduce(
+                    (sum,item)=> sum + item.price * item.quantity,
+                    0
+                ) * 100,
+                currency: "NGN",
+                ref: `praise-joshua-${Date.now()}`,
+                label: customerName,
+                callback: function(response){
+
+                            setTimeout(()=>{
+
+                            cart = [];
+                            saveCart();
+                            displayCart();
+                            updateCheckoutButtonState();
+                            closeModal();
+                            showSuccessAlert(customerName, email, address, response.reference);
+
+                        }, 2000);
+
+                },
+                onClose: function(){
+
+                    showCheckoutMessage("Payment window closed. No charge was made.", "error");
+
+                }
+
+            });
+
+            handler.openIframe();
+
+        } else {
+
+            showCheckoutMessage("Paystack could not be loaded. Please replace the placeholder test key.", "error");
+
+        }
+
+    });
+
+
+    updateCheckoutButtonState();
+
+}
 
 
 // Clear cart
@@ -476,6 +772,8 @@ document.addEventListener(
 
 
     setupClearCart();
+
+    setupCheckoutModal();
 
 
 });

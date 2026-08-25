@@ -7,7 +7,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>FootStyle | Shopping Cart</title>
+    <title>Praise Joshua | Shopping Cart</title>
 
 
     <!-- Main CSS -->
@@ -26,6 +26,8 @@
     <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </head>
 
@@ -44,7 +46,7 @@
 
 <div class="logo">
 
-    FootStyle
+    Praise Joshua
 
 </div>
 
@@ -163,6 +165,14 @@
         <div class="cart-actions">
 
 
+            <button
+            id="checkout-btn"
+            class="checkout-btn">
+
+                Checkout
+
+            </button>
+
             <button 
             id="clear-cart"
             class="clear-cart">
@@ -198,10 +208,74 @@
 
 </section>
 
+<div class="checkout-modal" id="checkout-modal" aria-hidden="true">
 
+    <div class="modal-overlay"></div>
 
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
 
+        <button class="modal-close" id="checkout-close" aria-label="Close checkout">×</button>
 
+        <h2 id="checkout-title">Checkout</h2>
+
+        <p class="checkout-note">
+            Test mode only. No real payment is processed here. Use a Paystack test public key and test card details.
+        </p>
+
+        <div id="checkout-summary" class="checkout-summary-box"></div>
+
+        <form id="checkout-form" class="checkout-form">
+
+            <label>
+                Full Name
+                <input type="text" id="customer-name" placeholder="Ada Lovelace" required>
+            </label>
+
+            <label>
+                Email
+                <input type="email" id="customer-email" placeholder="ada@example.com" required>
+            </label>
+
+            <label>
+                Shipping Address
+                <textarea id="shipping-address" rows="3" placeholder="Enter your delivery address" required></textarea>
+            </label>
+
+            <div class="payment-card-fields">
+                <p class="card-note">Demo card details only. They are not stored or charged.</p>
+
+                <label>
+                    Cardholder Name
+                    <input type="text" id="cardholder-name" placeholder="Ada Lovelace" required>
+                </label>
+
+                <label>
+                    Card Number
+                    <input type="text" id="card-number" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" required>
+                </label>
+
+                <div class="card-row">
+                    <label>
+                        Expiry
+                        <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" required>
+                    </label>
+
+                    <label>
+                        CVV
+                        <input type="text" id="card-cvv" placeholder="123" maxlength="4" required>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="pay-btn">Pay with Paystack</button>
+
+        </form>
+
+        <div id="checkout-status" class="checkout-status"></div>
+
+    </div>
+
+</div>
 
 <!-- ================= FOOTER ================= -->
 
@@ -217,7 +291,7 @@
 
 <h2>
 
-FootStyle
+Praise Joshua
 
 </h2>
 
@@ -327,12 +401,12 @@ Contact
 
 
 <p>
-info@footstyle.com
+praisejoshua783@gmail.com
 </p>
 
 
 <p>
-+234 800 123 4567
+08169073300
 </p>
 
 
@@ -367,7 +441,7 @@ info@footstyle.com
 <div class="copyright">
 
 
-© 2026 FootStyle. All Rights Reserved.
+© 2026 Praise Joshua. All Rights Reserved.
 
 
 </div>
@@ -380,6 +454,7 @@ info@footstyle.com
 
 
 
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="assets/js/main.js"></script>
 
 
